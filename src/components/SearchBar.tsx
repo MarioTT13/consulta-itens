@@ -1,0 +1,88 @@
+import { AlertCircle, Hash, Loader2, Search } from "lucide-react"
+import { CODIGOS_EXEMPLO } from "../data/mockItems"
+
+type SearchBarProps = {
+  codigo: string
+  carregando: boolean
+  erro: string | null
+  onCodigoChange: (valor: string) => void
+  onConsultar: (codigo: string) => void
+}
+
+export function SearchBar({
+  codigo,
+  carregando,
+  erro,
+  onCodigoChange,
+  onConsultar,
+}: SearchBarProps) {
+  return (
+    <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60 sm:p-5">
+      <form
+        onSubmit={(event) => {
+          event.preventDefault()
+          onConsultar(codigo)
+        }}
+      >
+        <label htmlFor="codigo-item" className="text-sm font-semibold text-slate-700">
+          Código ou SKU
+        </label>
+        <div className="mt-2 flex flex-col gap-3 sm:flex-row">
+          <div className="relative min-w-0 flex-1">
+            <Hash
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400"
+              aria-hidden="true"
+            />
+            <input
+              id="codigo-item"
+              name="codigo"
+              value={codigo}
+              onChange={(event) => onCodigoChange(event.target.value)}
+              placeholder="Ex.: ITEM-1002"
+              autoComplete="off"
+              spellCheck={false}
+              className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pr-3 pl-10 font-mono text-sm text-slate-900 outline-none transition placeholder:font-sans placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-900/10"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={carregando}
+            className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-wait disabled:opacity-80"
+          >
+            {carregando ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <Search className="size-4" aria-hidden="true" />
+            )}
+            {carregando ? "Consultando" : "Consultar"}
+          </button>
+        </div>
+      </form>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <span className="text-xs text-slate-500">Exemplos</span>
+        {CODIGOS_EXEMPLO.map((exemplo) => (
+          <button
+            key={exemplo}
+            type="button"
+            onClick={() => onConsultar(exemplo)}
+            disabled={carregando}
+            className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-xs text-slate-600 transition hover:border-slate-300 hover:bg-white disabled:opacity-60"
+          >
+            {exemplo}
+          </button>
+        ))}
+      </div>
+
+      {erro ? (
+        <div
+          role="alert"
+          className="mt-4 flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-3 text-sm text-rose-800"
+        >
+          <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <p>{erro}</p>
+        </div>
+      ) : null}
+    </section>
+  )
+}
