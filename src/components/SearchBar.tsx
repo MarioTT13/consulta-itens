@@ -18,20 +18,20 @@ export function SearchBar({
   onConsultar,
 }: SearchBarProps) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60 sm:p-5">
+    <section className="mx-auto w-full max-w-3xl rounded-2xl border border-slate-200/80 bg-white p-6 shadow-md shadow-slate-200/70 sm:p-8">
       <form
         onSubmit={(event) => {
           event.preventDefault()
           onConsultar(codigo)
         }}
       >
-        <label htmlFor="codigo-item" className="text-sm font-semibold text-slate-700">
-          Código ou SKU
+        <label htmlFor="codigo-item" className="text-sm font-medium tracking-wide text-slate-500">
+          Informe o Codigo
         </label>
-        <div className="mt-2 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative min-w-0 flex-1">
             <Hash
-              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400"
+              className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-400"
               aria-hidden="true"
             />
             <input
@@ -42,13 +42,13 @@ export function SearchBar({
               placeholder="Ex.: ITEM-1002"
               autoComplete="off"
               spellCheck={false}
-              className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pr-3 pl-10 font-mono text-sm text-slate-900 outline-none transition placeholder:font-sans placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-900/10"
+              className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pr-4 pl-10 font-mono text-sm text-slate-900 outline-none transition placeholder:font-sans placeholder:text-slate-400 focus:border-slate-300 focus:bg-white focus:ring-4 focus:ring-slate-900/5"
             />
           </div>
           <button
             type="submit"
             disabled={carregando}
-            className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-wait disabled:opacity-80"
+            className="inline-flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-wait disabled:opacity-80 sm:w-auto"
           >
             {carregando ? (
               <Loader2 className="size-4 animate-spin" aria-hidden="true" />

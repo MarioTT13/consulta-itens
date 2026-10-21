@@ -149,11 +149,6 @@ function App() {
       </header>
 
       <main className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6 sm:px-6 sm:py-8">
-        <p className="max-w-2xl text-sm leading-6 text-slate-500">
-          Informe o código ou SKU para ver o saldo, a última movimentação e o histórico de notas
-          fiscais.
-        </p>
-
         <SearchBar
           codigo={codigo}
           carregando={carregando}
@@ -164,14 +159,14 @@ function App() {
         />
 
         {carregando && !item ? (
-          <p className="flex items-center gap-2 text-sm text-slate-500">
+          <p className="mx-auto flex max-w-3xl items-center justify-center gap-2 text-sm text-slate-500">
             <Loader2 className="size-4 animate-spin" aria-hidden="true" />
             Carregando dados do estoque...
           </p>
         ) : null}
 
         {!carregando && !erro && itens.length === 0 ? (
-          <p className="text-sm text-slate-500">
+          <p className="mx-auto max-w-3xl px-2 text-center text-sm leading-6 text-slate-500">
             Nenhum item cadastrado no momento. Novas notas aparecem aqui automaticamente.
           </p>
         ) : null}
