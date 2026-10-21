@@ -6,15 +6,22 @@ type HistorySectionProps = {
 }
 
 type Linha = {
+  id: string
+  criadoEm: string
   data: string
   notaFiscal: string
   parte: string
-  quantidade: number
-  precoUnitario: number
+  quantidade: number | null
+  precoUnitario: number | null
 }
 
 function ordenar(linhas: Linha[]) {
-  return [...linhas].sort((a, b) => b.data.localeCompare(a.data))
+  return [...linhas].sort((a, b) => b.criadoEm.localeCompare(a.criadoEm))
+}
+
+function valorLinha(linha: Linha) {
+  if (linha.quantidade == null || linha.precoUnitario == null) return "—"
+  return formatarMoeda(valorTotal(linha.quantidade, linha.precoUnitario))
 }
 
 function TabelaHistorico({
@@ -51,14 +58,14 @@ function TabelaHistorico({
           <p className="px-5 py-8 text-center text-sm text-slate-500">{vazio}</p>
         ) : (
           ordenadas.map((linha) => (
-            <article key={`${linha.notaFiscal}-${linha.data}`} className="px-4 py-4">
+            <article key={linha.id} className="px-4 py-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-slate-900">{linha.parte}</p>
                   <p className="mt-1 font-mono text-xs text-slate-500">{linha.notaFiscal}</p>
                 </div>
                 <p className="shrink-0 text-sm font-semibold text-slate-900 tabular-nums">
-                  {formatarMoeda(valorTotal(linha.quantidade, linha.precoUnitario))}
+                  {valorLinha(linha)}
                 </p>
               </div>
               <dl className="mt-3 grid grid-cols-3 gap-2 text-xs">
@@ -69,12 +76,14 @@ function TabelaHistorico({
                 <div>
                   <dt className="font-semibold tracking-wide text-slate-400 uppercase">Qtd.</dt>
                   <dd className="mt-1 font-medium text-slate-800 tabular-nums">
-                    {formatarQuantidade(linha.quantidade, unidade)}
+                    {linha.quantidade == null ? "—" : formatarQuantidade(linha.quantidade, unidade)}
                   </dd>
                 </div>
                 <div>
                   <dt className="font-semibold tracking-wide text-slate-400 uppercase">Unitário</dt>
-                  <dd className="mt-1 text-slate-700 tabular-nums">{formatarMoeda(linha.precoUnitario)}</dd>
+                  <dd className="mt-1 text-slate-700 tabular-nums">
+                    {linha.precoUnitario == null ? "—" : formatarMoeda(linha.precoUnitario)}
+                  </dd>
                 </div>
               </dl>
             </article>
@@ -115,10 +124,7 @@ function TabelaHistorico({
               </tr>
             ) : (
               ordenadas.map((linha) => (
-                <tr
-                  key={`${linha.notaFiscal}-${linha.data}`}
-                  className="border-t border-slate-100 transition hover:bg-slate-50/80"
-                >
+                <tr key={linha.id} className="border-t border-slate-100 transition hover:bg-slate-50/80">
                   <td className="px-5 py-3.5 whitespace-nowrap text-slate-700">
                     {formatarData(linha.data)}
                   </td>
@@ -129,13 +135,13 @@ function TabelaHistorico({
                   </td>
                   <td className="px-5 py-3.5 text-slate-800">{linha.parte}</td>
                   <td className="px-5 py-3.5 text-right font-medium text-slate-800 tabular-nums">
-                    {formatarQuantidade(linha.quantidade, unidade)}
+                    {linha.quantidade == null ? "—" : formatarQuantidade(linha.quantidade, unidade)}
                   </td>
                   <td className="px-5 py-3.5 text-right text-slate-700 tabular-nums">
-                    {formatarMoeda(linha.precoUnitario)}
+                    {linha.precoUnitario == null ? "—" : formatarMoeda(linha.precoUnitario)}
                   </td>
                   <td className="px-5 py-3.5 text-right font-semibold text-slate-900 tabular-nums">
-                    {formatarMoeda(valorTotal(linha.quantidade, linha.precoUnitario))}
+                    {valorLinha(linha)}
                   </td>
                 </tr>
               ))
@@ -149,6 +155,8 @@ function TabelaHistorico({
 
 export function HistorySection({ item }: HistorySectionProps) {
   const entradas: Linha[] = item.entradas.map((entrada) => ({
+    id: entrada.id,
+    criadoEm: entrada.criadoEm,
     data: entrada.data,
     notaFiscal: entrada.notaFiscal,
     parte: entrada.fornecedor,
@@ -157,6 +165,8 @@ export function HistorySection({ item }: HistorySectionProps) {
   }))
 
   const saidas: Linha[] = item.saidas.map((saida) => ({
+    id: saida.id,
+    criadoEm: saida.criadoEm,
     data: saida.data,
     notaFiscal: saida.notaFiscal,
     parte: saida.cliente,

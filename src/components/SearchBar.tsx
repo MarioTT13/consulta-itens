@@ -1,10 +1,10 @@
 import { AlertCircle, Hash, Loader2, Search } from "lucide-react"
-import { CODIGOS_EXEMPLO } from "../data/mockItems"
 
 type SearchBarProps = {
   codigo: string
   carregando: boolean
   erro: string | null
+  exemplos: string[]
   onCodigoChange: (valor: string) => void
   onConsultar: (codigo: string) => void
 }
@@ -13,6 +13,7 @@ export function SearchBar({
   codigo,
   carregando,
   erro,
+  exemplos,
   onCodigoChange,
   onConsultar,
 }: SearchBarProps) {
@@ -59,20 +60,22 @@ export function SearchBar({
         </div>
       </form>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <span className="text-xs text-slate-500">Exemplos</span>
-        {CODIGOS_EXEMPLO.map((exemplo) => (
-          <button
-            key={exemplo}
-            type="button"
-            onClick={() => onConsultar(exemplo)}
-            disabled={carregando}
-            className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-xs text-slate-600 transition hover:border-slate-300 hover:bg-white disabled:opacity-60"
-          >
-            {exemplo}
-          </button>
-        ))}
-      </div>
+      {exemplos.length > 0 ? (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className="text-xs text-slate-500">Itens</span>
+          {exemplos.map((exemplo) => (
+            <button
+              key={exemplo}
+              type="button"
+              onClick={() => onConsultar(exemplo)}
+              disabled={carregando}
+              className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-xs text-slate-600 transition hover:border-slate-300 hover:bg-white disabled:opacity-60"
+            >
+              {exemplo}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       {erro ? (
         <div

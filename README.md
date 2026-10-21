@@ -1,43 +1,15 @@
 # Consulta de itens
 
-Tela de consulta de estoque em React, Tailwind CSS e Lucide. Abre com dados de demonstração e pode consultar uma API real.
+Tela de consulta de estoque em React, Tailwind CSS e Lucide. Os dados vêm do Supabase e as novas notas entram na lista em tempo real.
 
 ## Rodar localmente
 
 ```bash
 npm install
+cp .env.example .env
 npm run dev
 ```
 
-## Conectar uma API
+Preencha `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` no `.env`.
 
-Defina `VITE_API_BASE_URL` com a URL base da API. A consulta faz `GET {base}/itens/{codigo}` e espera:
-
-```json
-{
-  "codigo": "ITEM-1002",
-  "descricao": "Arruela Autotravante M8 Inox",
-  "unidade": "UN",
-  "estoqueAtual": 450,
-  "entradas": [
-    {
-      "data": "2026-10-02",
-      "notaFiscal": "NF-10482",
-      "fornecedor": "Metalúrgica Atlas Ltda",
-      "quantidade": 200,
-      "precoUnitario": 0.42
-    }
-  ],
-  "saidas": [
-    {
-      "data": "2026-10-11",
-      "notaFiscal": "NF-20911",
-      "cliente": "Construtora Horizonte Ltda",
-      "quantidade": 80,
-      "precoUnitario": 0.89
-    }
-  ]
-}
-```
-
-Sem essa variável, a tela usa o catálogo local em `src/data/mockItems.ts`.
+A tela lê `itens`, `entradas` e `saidas`. Entradas e saídas ficam ordenadas por `created_at`, da mais recente para a mais antiga. Um listener de `INSERT` acrescenta a nota no topo sem recarregar a página.

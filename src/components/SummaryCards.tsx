@@ -7,11 +7,11 @@ type SummaryCardsProps = {
 }
 
 function ultimaEntrada(entradas: MovimentoEntrada[]) {
-  return [...entradas].sort((a, b) => b.data.localeCompare(a.data))[0] ?? null
+  return [...entradas].sort((a, b) => b.criadoEm.localeCompare(a.criadoEm))[0] ?? null
 }
 
 function ultimaSaida(saidas: MovimentoSaida[]) {
-  return [...saidas].sort((a, b) => b.data.localeCompare(a.data))[0] ?? null
+  return [...saidas].sort((a, b) => b.criadoEm.localeCompare(a.criadoEm))[0] ?? null
 }
 
 function Campo({ rotulo, valor }: { rotulo: string; valor: string }) {
@@ -47,9 +47,16 @@ export function SummaryCards({ item }: SummaryCardsProps) {
             <Campo rotulo="Data" valor={formatarData(entrada.data)} />
             <Campo
               rotulo="Quantidade"
-              valor={formatarQuantidade(entrada.quantidade, item.unidade)}
+              valor={
+                entrada.quantidade == null
+                  ? "—"
+                  : formatarQuantidade(entrada.quantidade, item.unidade)
+              }
             />
-            <Campo rotulo="Preço unitário de custo" valor={formatarMoeda(entrada.precoUnitario)} />
+            <Campo
+              rotulo="Preço unitário de custo"
+              valor={entrada.precoUnitario == null ? "—" : formatarMoeda(entrada.precoUnitario)}
+            />
             <Campo rotulo="Fornecedor" valor={entrada.fornecedor} />
           </dl>
         ) : (
@@ -78,8 +85,14 @@ export function SummaryCards({ item }: SummaryCardsProps) {
         {saida ? (
           <dl className="mt-5 grid grid-cols-2 gap-4">
             <Campo rotulo="Data" valor={formatarData(saida.data)} />
-            <Campo rotulo="Quantidade" valor={formatarQuantidade(saida.quantidade, item.unidade)} />
-            <Campo rotulo="Preço unitário de venda" valor={formatarMoeda(saida.precoUnitario)} />
+            <Campo
+              rotulo="Quantidade"
+              valor={saida.quantidade == null ? "—" : formatarQuantidade(saida.quantidade, item.unidade)}
+            />
+            <Campo
+              rotulo="Preço unitário de venda"
+              valor={saida.precoUnitario == null ? "—" : formatarMoeda(saida.precoUnitario)}
+            />
             <Campo rotulo="Cliente" valor={saida.cliente} />
           </dl>
         ) : (

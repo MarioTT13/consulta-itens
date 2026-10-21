@@ -1,35 +1,134 @@
-import { useState } from "react"
-import { Warehouse } from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { Loader2, Warehouse } from "lucide-react"
 import { HistorySection } from "./components/HistorySection"
 import { ProductHeader } from "./components/ProductHeader"
 import { SearchBar } from "./components/SearchBar"
 import { SummaryCards } from "./components/SummaryCards"
-import { ITEM_INICIAL } from "./data/mockItems"
-import { consultarItem } from "./services/inventoryApi"
-import type { FonteConsulta, ItemConsulta } from "./types/item"
+import {
+  buscarItem,
+  carregarEstoque,
+  incluirNoTopo,
+  inscreverMovimentos,
+  montarItem,
+  type EntradaRow,
+  type ItemRow,
+  type SaidaRow,
+} from "./services/estoque"
+
+function itemInicial(itens: ItemRow[], entradas: EntradaRow[], saidas: SaidaRow[]) {
+  const recente = [...entradas, ...saidas].sort((a, b) => b.created_at.localeCompare(a.created_at))[0]
+  if (recente?.item_id) {
+    const relacionado = itens.find((item) => item.id === recente.item_id)
+    if (relacionado) return relacionado
+  }
+  return itens[0] ?? null
+}
 
 function App() {
-  const [codigo, setCodigo] = useState(ITEM_INICIAL.codigo)
-  const [item, setItem] = useState<ItemConsulta | null>(ITEM_INICIAL)
-  const [fonte, setFonte] = useState<FonteConsulta>("mock")
-  const [carregando, setCarregando] = useState(false)
+  const [codigo, setCodigo] = useState("")
+  const [itens, setItens] = useState<ItemRow[]>([])
+  const [entradas, setEntradas] = useState<EntradaRow[]>([])
+  const [saidas, setSaidas] = useState<SaidaRow[]>([])
+  const [selecionadoId, setSelecionadoId] = useState<string | null>(null)
+  const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
+  const itensRef = useRef<ItemRow[]>([])
+  const selecionadoRef = useRef<string | null>(null)
 
-  async function consultar(termo: string) {
-    setCodigo(termo)
-    setCarregando(true)
-    setErro(null)
+  useEffect(() => {
+    itensRef.current = itens
+    selecionadoRef.current = selecionadoId
+  }, [itens, selecionadoId])
 
-    try {
-      const resultado = await consultarItem(termo)
-      setItem(resultado.item)
-      setFonte(resultado.fonte)
-    } catch (error) {
-      setItem(null)
-      setErro(error instanceof Error ? error.message : "Não foi possível consultar o item.")
-    } finally {
-      setCarregando(false)
+  async function incorporarItem(itemId: string | null) {
+    if (!itemId) return
+    let item = itensRef.current.find((registro) => registro.id === itemId) ?? null
+    if (!item) {
+      item = await buscarItem(itemId)
+      if (!item) return
+      const recebido = item
+      setItens((atual) => (atual.some((registro) => registro.id === recebido.id) ? atual : [...atual, recebido]))
     }
+    if (!selecionadoRef.current) {
+      setSelecionadoId(item.id)
+      if (item.codigo) setCodigo(item.codigo)
+    }
+  }
+
+  useEffect(() => {
+    let ativo = true
+
+    async function carregar() {
+      setCarregando(true)
+      setErro(null)
+      try {
+        const dados = await carregarEstoque()
+        if (!ativo) return
+        setItens(dados.itens)
+        setEntradas(dados.entradas)
+        setSaidas(dados.saidas)
+        const inicial = itemInicial(dados.itens, dados.entradas, dados.saidas)
+        setSelecionadoId(inicial?.id ?? null)
+        setCodigo(inicial?.codigo ?? "")
+      } catch (error) {
+        if (!ativo) return
+        setSelecionadoId(null)
+        setErro(error instanceof Error ? error.message : "Não foi possível carregar os dados do Supabase.")
+      } finally {
+        if (ativo) setCarregando(false)
+      }
+    }
+
+    void carregar()
+
+    let cancelar = () => {}
+    try {
+      cancelar = inscreverMovimentos({
+        entrada: (registro) => {
+          setEntradas((atual) => incluirNoTopo(atual, registro))
+          void incorporarItem(registro.item_id)
+        },
+        saida: (registro) => {
+          setSaidas((atual) => incluirNoTopo(atual, registro))
+          void incorporarItem(registro.item_id)
+        },
+      })
+    } catch {
+      cancelar = () => {}
+    }
+
+    return () => {
+      ativo = false
+      cancelar()
+    }
+  }, [])
+
+  const selecionado = itens.find((item) => item.id === selecionadoId) ?? null
+  const item = useMemo(
+    () => (selecionado ? montarItem(selecionado, entradas, saidas) : null),
+    [selecionado, entradas, saidas],
+  )
+  const exemplos = itens.map((registro) => registro.codigo).filter((valor): valor is string => Boolean(valor))
+
+  function consultar(termo: string) {
+    const codigoBusca = termo.trim()
+    setCodigo(termo)
+    if (!codigoBusca) {
+      setSelecionadoId(null)
+      setErro("Informe o código ou SKU do item.")
+      return
+    }
+
+    const encontrado = itens.find((registro) => registro.codigo?.trim().toLowerCase() === codigoBusca.toLowerCase())
+    if (!encontrado) {
+      setSelecionadoId(null)
+      setErro(`Nenhum item encontrado para "${codigoBusca}".`)
+      return
+    }
+
+    setErro(null)
+    setSelecionadoId(encontrado.id)
+    setCodigo(encontrado.codigo ?? codigoBusca)
   }
 
   return (
@@ -59,18 +158,27 @@ function App() {
           codigo={codigo}
           carregando={carregando}
           erro={erro}
+          exemplos={exemplos}
           onCodigoChange={setCodigo}
-          onConsultar={(termo) => {
-            void consultar(termo)
-          }}
+          onConsultar={consultar}
         />
 
+        {carregando && !item ? (
+          <p className="flex items-center gap-2 text-sm text-slate-500">
+            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            Carregando dados do estoque...
+          </p>
+        ) : null}
+
+        {!carregando && !erro && itens.length === 0 ? (
+          <p className="text-sm text-slate-500">
+            Nenhum item cadastrado no momento. Novas notas aparecem aqui automaticamente.
+          </p>
+        ) : null}
+
         {item ? (
-          <div
-            className={`flex flex-col gap-4 transition ${carregando ? "pointer-events-none opacity-50" : ""}`}
-            aria-busy={carregando}
-          >
-            <ProductHeader item={item} fonte={fonte} />
+          <div className="flex flex-col gap-4" aria-busy={carregando}>
+            <ProductHeader item={item} fonte="supabase" />
             <SummaryCards item={item} />
             <HistorySection item={item} />
           </div>

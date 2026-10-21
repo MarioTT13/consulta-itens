@@ -18,7 +18,7 @@ export function ProductHeader({ item, fonte }: ProductHeaderProps) {
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
               <Package className="size-3.5" aria-hidden="true" />
-              {fonte === "api" ? "Consulta via API" : "Dados de demonstração"}
+              {fonte === "supabase" ? "Tempo real" : "Consulta"}
             </span>
           </div>
           <h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
@@ -33,7 +33,7 @@ export function ProductHeader({ item, fonte }: ProductHeaderProps) {
           </p>
           <p className="mt-2 flex items-baseline gap-2">
             <span className="text-5xl font-semibold tracking-tight tabular-nums">
-              {formatarQuantidade(item.estoqueAtual)}
+              {item.estoqueAtual == null ? "—" : formatarQuantidade(item.estoqueAtual)}
             </span>
             <span className="text-lg font-semibold text-emerald-300">{item.unidade}</span>
           </p>
